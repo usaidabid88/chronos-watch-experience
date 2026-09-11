@@ -1,0 +1,21 @@
+{
+  "name": "chronos-perpetual-41",
+  "version": "1.0.0",
+  "description": "CHRONOS Perpetual 41 - Interactive luxury horological scroll experience",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx serve -l 3456",
+    "start": "npx serve",
+    "build": "echo 'Build complete - static HTML project ready for Vercel'"
+  },
+  "keywords": [
+    "watch",
+    "luxury",
+    "canvas-animation",
+    "scroll-animation",
+    "horology",
+    "vercel"
+  ],
+  "author": "",
+  "license": "MIT"
+}

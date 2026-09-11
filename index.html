@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="CHRONOS Perpetual 41 - An interactive horological experience showcasing master watchmaking and mechanical explosion.">
+<meta property="og:title" content="CHRONOS | Perpetual 41">
+<meta property="og:description" content="Experience the precision engineering of the Chronos Perpetual 41 watch.">
+<meta property="og:type" content="website">
+<title>CHRONOS | Perpetual 41</title>
+<style>
+  :root {
+    --color-black: #000000;
+    --color-deep-black: #0a0a0a;
+    --color-charcoal: #1a1a1a;
+    --color-dark-grey: #2a2a2a;
+    --color-mid-grey: #666666;
+    --color-light-grey: #999999;
+    --color-off-white: #f5f5f5;
+    --color-cream: #f7f4ef;
+    --color-white: #ffffff;
+    --color-green: #006039;
+    --color-gold: #c5a44e;
+    --color-gold-dark: #a37e2c;
+    --color-gold-light: #d4b96a;
+
+    --font-primary: 'Helvetica Neue', Helvetica, Arial, 'Segoe UI', sans-serif;
+    --font-serif: Georgia, 'Times New Roman', Times, serif;
+    --fw-light: 300;
+    --fw-regular: 400;
+    --fw-medium: 500;
+
+    --fs-display: clamp(2.5rem, 5vw, 5rem);
+    --fs-h1: clamp(1.8rem, 3.5vw, 3rem);
+    --fs-h2: clamp(1.4rem, 2.5vw, 2.2rem);
+    --fs-h3: clamp(1rem, 1.5vw, 1.3rem);
+    --fs-body: clamp(0.95rem, 1.2vw, 1.1rem);
+    --fs-small: clamp(0.75rem, 0.9vw, 0.85rem);
+    --fs-caption: 0.7rem;
+
+    --space-xs: 8px;
+    --space-sm: 16px;
+    --space-md: 32px;
+    --space-lg: 64px;
+    --space-xl: 100px;
+    --space-2xl: 140px;
+
+    --ease-luxury: cubic-bezier(0.25, 0.1, 0.25, 1);
+    --duration-fast: 0.3s;
+    --duration-normal: 0.6s;
+    --duration-slow: 0.9s;
+    --duration-reveal: 1.2s;
+
+    --nav-height: 60px;
+    --content-max-width: 1000px;
+    --content-narrow: 700px;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: var(--font-primary);
+    font-weight: var(--fw-light);
+    color: var(--color-off-white);
+    background: var(--color-black);
+    line-height: 1.7;
+    overflow-x: hidden;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  ::selection {
+    background: var(--color-gold);
+    color: var(--color-black);
+  }
+
+  /* ── Scroll container: height controls animation speed.
+     Increase for slower, decrease for faster. ── */
+  .scroll-container { height: 400vh; position: relative; }
+
+  .canvas-wrap {
+    position: sticky;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-black);
+    overflow: hidden;
+  }
+
+  .canvas-wrap::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 45%, rgba(0, 0, 0, 0.55) 100%);
+  }
+
+  canvas { display: block; }
+
+  /* ── Loading screen ── */
+  .loader {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    z-index: 100;
+    background: var(--color-black);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.8s var(--ease-luxury);
+  }
+  .loader.hidden { opacity: 0; pointer-events: none; }
+
+  .loader-brand {
+    font-size: var(--fs-small);
+    font-weight: var(--fw-regular);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--color-gold);
+    margin-bottom: var(--space-lg);
+    opacity: 0;
+    animation: loaderFadeIn 1s var(--ease-luxury) 0.2s forwards;
+  }
+
+  .loader-ring-container {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin-bottom: var(--space-md);
+  }
+
+  .loader-ring {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  .loader-ring-bg {
+    fill: none;
+    stroke: var(--color-dark-grey);
+    stroke-width: 1;
+  }
+
+  .loader-ring-progress {
+    fill: none;
+    stroke: var(--color-gold);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-dasharray: 283;
+    stroke-dashoffset: 283;
+    transition: stroke-dashoffset 0.15s ease;
+  }
+
+  .loader-percent {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: var(--fs-h3);
+    font-weight: var(--fw-light);
+    letter-spacing: 0.05em;
+    color: var(--color-off-white);
+  }
+
+  .loader-tagline {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: var(--fs-small);
+    color: var(--color-mid-grey);
+    opacity: 0;
+    animation: loaderFadeIn 1s var(--ease-luxury) 0.6s forwards;
+  }
+
+  @keyframes loaderFadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Navigation ── */
+  .nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    height: var(--nav-height);
+    padding-top: env(safe-area-inset-top, 0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(197, 164, 78, 0.15);
+    opacity: 0;
+    transform: translateY(-100%);
+    transition: opacity var(--duration-normal) var(--ease-luxury),
+                transform var(--duration-normal) var(--ease-luxury);
+    pointer-events: none;
+  }
+
+  .nav.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .nav-brand {
+    font-size: 0.85rem;
+    font-weight: var(--fw-medium);
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--color-white);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+  }
+
+  .nav-model {
+    font-size: var(--fs-caption);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-gold-light);
+    font-weight: var(--fw-medium);
+    margin-top: 2px;
+  }
+
+  /* ── Hero overlay ── */
+  .hero-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 3;
+    pointer-events: none;
+    background: radial-gradient(ellipse 75% 65% at 50% 50%, rgba(0, 0, 0, 0.65) 0%, rgba(0, 0, 0, 0.35) 60%, transparent 100%);
+    transition: opacity var(--duration-slow) var(--ease-luxury);
+  }
+
+  .hero-overlay.faded { opacity: 0; }
+
+  .hero-collection {
+    font-size: clamp(0.8rem, 1vw, 0.95rem);
+    font-weight: var(--fw-medium);
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--color-gold-light);
+    margin-bottom: var(--space-sm);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.95), 0 0 25px rgba(0, 0, 0, 0.85);
+  }
+
+  .hero-title {
+    font-size: var(--fs-display);
+    font-weight: var(--fw-regular);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-white);
+    text-align: center;
+    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.95), 0 1px 3px rgba(0, 0, 0, 0.95), 0 0 50px rgba(0, 0, 0, 0.85);
+  }
+
+  .hero-subtitle {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: clamp(1.05rem, 1.4vw, 1.3rem);
+    color: #ffffff;
+    margin-top: var(--space-sm);
+    letter-spacing: 0.04em;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.95), 0 0 30px rgba(0, 0, 0, 0.85);
+  }
+
+  /* ── Scroll indicator ── */
+  .scroll-indicator {
+    position: fixed;
+    bottom: calc(40px + env(safe-area-inset-bottom, 0px));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    opacity: 0;
+    transition: opacity var(--duration-normal) var(--ease-luxury);
+    pointer-events: none;
+  }
+
+  .scroll-indicator.visible { opacity: 1; }
+  .scroll-indicator.hidden-scroll { opacity: 0; }
+
+  .scroll-indicator-text {
+    font-size: var(--fs-caption);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--color-white);
+    opacity: 0.85;
+    font-weight: var(--fw-medium);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95);
+  }
+
+  .scroll-indicator-line {
+    width: 1.5px;
+    height: 40px;
+    background: linear-gradient(to bottom, var(--color-gold-light), transparent);
+    box-shadow: 0 0 8px rgba(197, 164, 78, 0.4);
+    animation: scrollPulse 2s var(--ease-luxury) infinite;
+  }
+
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.3; transform: scaleY(0.7); }
+    50% { opacity: 1; transform: scaleY(1); }
+  }
+
+  /* ── Content sections ── */
+  .content-section {
+    position: relative;
+    padding: var(--space-2xl) var(--space-md);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    overflow: hidden;
+  }
+
+  .content-section--dark {
+    background: var(--color-deep-black);
+    color: var(--color-off-white);
+  }
+
+  .content-section--light {
+    background: var(--color-cream);
+    color: var(--color-charcoal);
+  }
+
+  .content-section--dark-alt {
+    background: var(--color-charcoal);
+    color: var(--color-off-white);
+  }
+
+  .section-divider {
+    width: 40px;
+    height: 1px;
+    background: var(--color-gold);
+    margin: 0 auto var(--space-lg);
+  }
+
+  /* ── Scroll reveal ── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity var(--duration-reveal) var(--ease-luxury),
+                transform var(--duration-reveal) var(--ease-luxury);
+  }
+
+  .reveal.revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .reveal-stagger > .reveal:nth-child(2) { transition-delay: 0.15s; }
+  .reveal-stagger > .reveal:nth-child(3) { transition-delay: 0.3s; }
+  .reveal-stagger > .reveal:nth-child(4) { transition-delay: 0.45s; }
+  .reveal-stagger > .reveal:nth-child(5) { transition-delay: 0.6s; }
+  .reveal-stagger > .reveal:nth-child(6) { transition-delay: 0.75s; }
+
+  /* ── Craftsmanship ── */
+  .craft-content { max-width: var(--content-narrow); }
+
+  .heading-sub {
+    font-size: var(--fs-h3);
+    font-weight: var(--fw-light);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--color-gold);
+    line-height: 1.4;
+  }
+
+  .craft-quote {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: var(--fs-h2);
+    color: var(--color-off-white);
+    line-height: 1.5;
+    margin-bottom: var(--space-lg);
+  }
+
+  .craft-description {
+    font-size: var(--fs-body);
+    font-weight: var(--fw-light);
+    line-height: 1.9;
+    color: #d6d6d6;
+    margin-bottom: var(--space-md);
+  }
+
+  /* ── Specifications ── */
+  .specs-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-lg) var(--space-md);
+    max-width: var(--content-max-width);
+    width: 100%;
+    margin-top: var(--space-lg);
+  }
+
+  .spec-item {
+    text-align: center;
+    padding: var(--space-md);
+  }
+
+  .spec-value {
+    font-size: var(--fs-h1);
+    font-weight: var(--fw-regular);
+    letter-spacing: 0.05em;
+    color: #111111;
+    margin-bottom: var(--space-xs);
+  }
+
+  .spec-label {
+    font-size: var(--fs-caption);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #4a4a4a;
+    font-weight: var(--fw-medium);
+  }
+
+  .spec-divider {
+    width: 20px;
+    height: 1px;
+    background: var(--color-gold);
+    margin: var(--space-sm) auto 0;
+  }
+
+  /* ── Heritage / CTA ── */
+  .heritage-content { max-width: var(--content-narrow); }
+
+  .heading-section {
+    font-size: var(--fs-h1);
+    font-weight: var(--fw-regular);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1.2;
+  }
+
+  .cta-button {
+    display: inline-block;
+    margin-top: var(--space-lg);
+    padding: 16px 48px;
+    border: 1px solid var(--color-gold);
+    color: var(--color-gold);
+    font-family: var(--font-primary);
+    font-size: var(--fs-caption);
+    font-weight: var(--fw-regular);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    background: transparent;
+    cursor: pointer;
+    transition: background var(--duration-fast) var(--ease-luxury),
+                color var(--duration-fast) var(--ease-luxury);
+  }
+
+  .cta-button:hover {
+    background: var(--color-gold);
+    color: var(--color-black);
+  }
+
+  /* ── Footer ── */
+  .footer {
+    padding: var(--space-lg) var(--space-md);
+    background: var(--color-black);
+    text-align: center;
+    border-top: 1px solid rgba(197, 164, 78, 0.15);
+  }
+
+  .footer-brand {
+    font-size: 0.85rem;
+    font-weight: var(--fw-regular);
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--color-off-white);
+    margin-bottom: var(--space-sm);
+  }
+
+  .footer-links {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+
+  .footer-link {
+    font-size: var(--fs-caption);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #b0b0b0;
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-luxury);
+  }
+
+  .footer-link:hover { color: var(--color-gold-light); }
+
+  .footer-copy {
+    font-size: var(--fs-caption);
+    color: #777777;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    :root {
+      --space-xl: 60px;
+      --space-2xl: 80px;
+      --nav-height: 50px;
+    }
+
+    .hero-title {
+      font-size: clamp(2rem, 9vw, 3rem);
+      letter-spacing: 0.12em;
+    }
+
+    .hero-collection {
+      font-size: 0.8rem;
+      letter-spacing: 0.25em;
+    }
+    .hero-subtitle {
+      font-size: 0.95rem;
+    }
+
+    .specs-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-md);
+    }
+
+    .footer-links {
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .scroll-indicator { bottom: 24px; }
+    .cta-button { padding: 14px 36px; }
+    .craft-quote { font-size: var(--fs-h3); }
+
+    .content-section {
+      padding: var(--space-xl) var(--space-sm);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .specs-grid { grid-template-columns: 1fr; }
+    .nav-model { display: none; }
+  }
+
+  /* ── Reduced motion ── */
+  @media (prefers-reduced-motion: reduce) {
+    .reveal {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+
+    .scroll-indicator-line {
+      animation: none;
+      opacity: 0.5;
+    }
+
+    .loader-brand,
+    .loader-tagline {
+      animation: none;
+      opacity: 1;
+    }
+
+    .hero-overlay,
+    .scroll-indicator,
+    .nav {
+      transition: none;
+    }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <div class="nav-brand">CHRONOS</div>
+  <div class="nav-model">Perpetual 41</div>
+</nav>
+
+<div class="loader" id="loader">
+  <div class="loader-brand">CHRONOS</div>
+  <div class="loader-ring-container">
+    <svg class="loader-ring" viewBox="0 0 100 100">
+      <circle class="loader-ring-bg" cx="50" cy="50" r="45"/>
+      <circle class="loader-ring-progress" id="loaderRing" cx="50" cy="50" r="45"/>
+    </svg>
+    <div class="loader-percent" id="loaderPercent">0</div>
+  </div>
+  <div class="loader-tagline">A crown for every achievement</div>
+</div>
+
+<div class="scroll-container" id="scrollContainer">
+  <div class="canvas-wrap">
+    <canvas id="canvas"></canvas>
+  </div>
+</div>
+
+<div class="hero-overlay" id="heroOverlay">
+  <div class="hero-collection">Oyster Perpetual</div>
+  <div class="hero-title">CHRONOS</div>
+  <div class="hero-subtitle">Where precision meets artistry</div>
+</div>
+
+<div class="scroll-indicator" id="scrollIndicator">
+  <div class="scroll-indicator-text">Scroll to explore</div>
+  <div class="scroll-indicator-line"></div>
+</div>
+
+<!-- Craftsmanship -->
+<section class="content-section content-section--dark">
+  <div class="craft-content reveal-stagger">
+    <div class="heading-sub reveal">Craftsmanship</div>
+    <div class="section-divider reveal"></div>
+    <p class="craft-quote reveal">
+      "Every timepiece is a testament to the relentless pursuit of perfection"
+    </p>
+    <p class="craft-description reveal">
+      Assembled by hand in our ateliers, the Perpetual 41 represents the culmination
+      of decades of horological mastery. Each component is finished to microscopic
+      tolerances, ensuring a precision that transcends mere timekeeping.
+    </p>
+    <p class="craft-description reveal">
+      The movement within beats at 28,800 vibrations per hour, a rhythm of
+      mechanical perfection protected by an Oyster case carved from a single
+      block of corrosion-resistant 904L steel.
+    </p>
+  </div>
+</section>
+
+<!-- Specifications -->
+<section class="content-section content-section--light">
+  <div class="reveal-stagger" style="width:100%;display:flex;flex-direction:column;align-items:center;">
+    <div class="heading-sub reveal" style="color:var(--color-charcoal);">Specifications</div>
+    <div class="section-divider reveal"></div>
+    <div class="specs-grid reveal-stagger">
+      <div class="spec-item reveal">
+        <div class="spec-value">41</div>
+        <div class="spec-label">Case Size (mm)</div>
+        <div class="spec-divider"></div>
+      </div>
+      <div class="spec-item reveal">
+        <div class="spec-value">100m</div>
+        <div class="spec-label">Water Resistance</div>
+        <div class="spec-divider"></div>
+      </div>
+      <div class="spec-item reveal">
+        <div class="spec-value">70h</div>
+        <div class="spec-label">Power Reserve</div>
+        <div class="spec-divider"></div>
+      </div>
+      <div class="spec-item reveal">
+        <div class="spec-value">904L</div>
+        <div class="spec-label">Oystersteel</div>
+        <div class="spec-divider"></div>
+      </div>
+      <div class="spec-item reveal">
+        <div class="spec-value">Cal. 3230</div>
+        <div class="spec-label">Movement</div>
+        <div class="spec-divider"></div>
+      </div>
+      <div class="spec-item reveal">
+        <div class="spec-value">Sapphire</div>
+        <div class="spec-label">Crystal</div>
+        <div class="spec-divider"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Heritage -->
+<section class="content-section content-section--dark-alt">
+  <div class="heritage-content reveal-stagger">
+    <div class="heading-sub reveal">Heritage</div>
+    <div class="section-divider reveal"></div>
+    <p class="heading-section reveal" style="margin-bottom:var(--space-md);">
+      A Legacy of Excellence
+    </p>
+    <p class="craft-description reveal">
+      Since our founding, every Chronos timepiece has carried forward a singular
+      vision: that a watch should not merely tell time, but embody the
+      character of the one who wears it.
+    </p>
+    <a href="#" class="cta-button reveal">Discover the Collection</a>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-brand">CHRONOS</div>
+  <div class="footer-links">
+    <a href="#" class="footer-link">Collections</a>
+    <a href="#" class="footer-link">Craftsmanship</a>
+    <a href="#" class="footer-link">Heritage</a>
+    <a href="#" class="footer-link">Contact</a>
+  </div>
+  <div class="footer-copy">&copy; 2026 Chronos. All rights reserved.</div>
+</footer>
+
+<script>
+(function () {
+  const TOTAL_FRAMES = 240;
+  const FRAME_PATH = (n) => `frames/ezgif-frame-${String(n).padStart(3, '0')}.jpg`;
+
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const loader = document.getElementById('loader');
+  const loaderRing = document.getElementById('loaderRing');
+  const loaderPercent = document.getElementById('loaderPercent');
+  const scrollContainer = document.getElementById('scrollContainer');
+  const heroOverlay = document.getElementById('heroOverlay');
+  const scrollIndicator = document.getElementById('scrollIndicator');
+  const nav = document.getElementById('nav');
+
+  // On mobile (<768px), load every 2nd frame to halve bandwidth.
+  const isMobile = window.innerWidth < 768;
+  const step = isMobile ? 2 : 1;
+
+  // Build the ordered list of frame numbers we'll actually load.
+  const frameNumbers = [];
+  for (let i = 1; i <= TOTAL_FRAMES; i += step) frameNumbers.push(i);
+
+  const CIRCUMFERENCE = 2 * Math.PI * 45; // matches SVG r=45
+  const frames = [];
+  let currentIndex = -1;
+  let targetIndex = 0;
+  let ready = false;
+
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // --- Preload all frames ---
+  let loaded = 0;
+  function preload() {
+    return new Promise((resolve) => {
+      frameNumbers.forEach((n, i) => {
+        const img = new Image();
+        img.src = FRAME_PATH(n);
+        img.onload = img.onerror = () => {
+          loaded++;
+          const pct = Math.round((loaded / frameNumbers.length) * 100);
+          loaderRing.style.strokeDashoffset = CIRCUMFERENCE - (CIRCUMFERENCE * pct / 100);
+          loaderPercent.textContent = pct;
+          if (loaded === frameNumbers.length) resolve();
+        };
+        frames[i] = img;
+      });
+    });
+  }
+
+  // --- Canvas sizing: cover viewport, preserve aspect ratio ---
+  function sizeCanvas() {
+    if (!frames[0] || !frames[0].naturalWidth) return;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const imgW = frames[0].naturalWidth;
+    const imgH = frames[0].naturalHeight;
+    const scale = Math.max(vw / imgW, vh / imgH);
+    canvas.width = Math.round(imgW * scale);
+    canvas.height = Math.round(imgH * scale);
+    canvas.style.width = canvas.width + 'px';
+    canvas.style.height = canvas.height + 'px';
+    currentIndex = -1;
+  }
+
+  function drawFrame(index) {
+    const img = frames[index];
+    if (!img) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  }
+
+  // --- Scroll → frame mapping ---
+  // fraction (0→1) maps the scroll position to the full frame sequence.
+  // To make the animation faster: reduce .scroll-container height (e.g. 200vh).
+  // To make it slower: increase it (e.g. 600vh).
+  let lastFraction = 0;
+  function updateTargetIndex() {
+    const rect = scrollContainer.getBoundingClientRect();
+    const scrollable = rect.height - window.innerHeight;
+    const scrolled = Math.min(Math.max(-rect.top, 0), scrollable);
+    const fraction = scrolled / scrollable;
+    targetIndex = Math.round(fraction * (frames.length - 1));
+    lastFraction = fraction;
+
+    // Fade hero text once the user starts scrolling
+    if (heroOverlay) {
+      if (fraction > 0.03 && !heroOverlay.classList.contains('faded')) {
+        heroOverlay.classList.add('faded');
+      } else if (fraction <= 0.03 && heroOverlay.classList.contains('faded')) {
+        heroOverlay.classList.remove('faded');
+      }
+    }
+
+    // Hide scroll indicator
+    if (scrollIndicator) {
+      if (fraction > 0.02 && !scrollIndicator.classList.contains('hidden-scroll')) {
+        scrollIndicator.classList.add('hidden-scroll');
+      } else if (fraction <= 0.02 && scrollIndicator.classList.contains('hidden-scroll')) {
+        scrollIndicator.classList.remove('hidden-scroll');
+      }
+    }
+  }
+
+  // --- rAF loop: only repaints when the frame actually changes ---
+  function tick() {
+    if (!ready) { requestAnimationFrame(tick); return; }
+    updateTargetIndex();
+    if (targetIndex !== currentIndex) {
+      currentIndex = targetIndex;
+      drawFrame(currentIndex);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  // --- Init ---
+  preload().then(() => {
+    ready = true;
+    sizeCanvas();
+
+    if (prefersReduced) {
+      drawFrame(0);
+    }
+
+    loader.classList.add('hidden');
+
+    setTimeout(() => { nav.classList.add('visible'); }, 600);
+    setTimeout(() => { scrollIndicator.classList.add('visible'); }, 1200);
+  });
+
+  function handleResize() {
+    sizeCanvas();
+    if (currentIndex >= 0) {
+      drawFrame(currentIndex);
+    }
+  }
+
+  window.addEventListener('resize', handleResize);
+  window.addEventListener('orientationchange', () => {
+    setTimeout(handleResize, 150);
+  });
+  requestAnimationFrame(tick);
+})();
+
+// --- Scroll reveal animations ---
+(function () {
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed');
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.15, rootMargin: '0px 0px -50px 0px' }
+  );
+
+  document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+})();
+</script>
+
+</body>
+</html>
