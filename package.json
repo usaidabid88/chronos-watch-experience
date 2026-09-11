@@ -5,8 +5,7 @@
   "main": "index.html",
   "scripts": {
     "dev": "npx serve -l 3456",
-    "start": "npx serve",
-    "build": "echo 'Build complete - static HTML project ready for Vercel'"
+    "start": "npx serve"
   },
   "keywords": [
     "watch",

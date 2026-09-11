@@ -1,6 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "cleanUrls": true,
+  "outputDirectory": ".",
+  "buildCommand": null,
   "headers": [
     {
       "source": "/frames/(.*)",
